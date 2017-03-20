@@ -77,11 +77,14 @@ namespace zbar_ros
   void BarcodeReaderNodelet::imageCb(const sensor_msgs::ImageConstPtr &image)
   {
     cv_bridge::CvImageConstPtr cv_image;
-    cv_image = cv_bridge::toCvShare(image, "mono16");
+    cv_image = cv_bridge::toCvShare(image, "mono8");
 
-    zbar::Image zbar_image(cv_image->image.cols, cv_image->image.rows, "Y800", cv_image->image.data,
+    zbar::Image zbar_image(cv_image->image.cols, cv_image->image.rows, "GREY", cv_image->image.data,
         cv_image->image.cols * cv_image->image.rows);
-    scanner_.scan(zbar_image);
+    int scanres = scanner_.scan(zbar_image);
+    if (scanres < 0) {
+        NODELET_DEBUG("Error performing scan!");
+    }
 
     // iterate over all barcode readings from image
     for (zbar::Image::SymbolIterator symbol = zbar_image.symbol_begin();
